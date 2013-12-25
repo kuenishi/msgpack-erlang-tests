@@ -12,7 +12,8 @@ make: all
 
 test:
 	@$(REBAR) get-deps
-	@$(REBAR) eunit
+	@$(REBAR) compile
+	@$(REBAR) eunit skip_deps=true
 
 bench: compile
 	@$(REBAR) eunit skip_deps=true suites=bench_tests
