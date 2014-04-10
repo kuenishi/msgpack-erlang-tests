@@ -37,7 +37,7 @@ choose_type_jsx() ->
            int8(), int16(), int32(), int64(),
            uint8(), uint16(), uint32(), uint64(),
            float(),
-           nil(), boolean(),
+           null(), boolean(),
            fix_raw(), raw16(), raw32(),
            fix_array_jsx(), %array16(), array32(),
            fix_map_jsx() %, map16(), map32()
@@ -87,6 +87,9 @@ uint64() ->
 
 nil() ->
     nil.
+
+null() ->
+    null.
 
 fix_raw() ->
     ?LET(Integer, choose(0, 31),

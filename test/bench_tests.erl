@@ -26,7 +26,7 @@
 -define(CNT, 10000).
 
 test_data()->
-    [true, false, nil,
+    [true, false,
      0, 1, 2, 123, 512, 1230, 678908, 16#FFFFFFFFFF,
      -1, -23, -512, -1230, -567898, -16#FFFFFFFFFF,
      -16#80000001,
@@ -34,7 +34,7 @@ test_data()->
      [23, 234, 0.23],
      <<"hogehoge">>, <<"243546rf7g68h798j", 0, 23, 255>>,
      <<"hoasfdafdas][">>,
-     [0,42, <<"sum">>, [1,2]], [1,42, nil, [3]],
+     [0,42, <<"sum">>, [1,2]], [1,42, [3]],
      -234, -40000, -16#10000000, -16#100000000,
      42
     ].
@@ -43,15 +43,15 @@ test_data()->
 %%     [{1,1}, {2,2}, {3,3}, {4,4}, {5,5}],
 
 benchmark0_test()->
-    Data=[test_data() || _ <- lists:seq(0, ?CNT)],
-    S=?debugTime("  serialize", msgpack:pack(Data, [jiffy])),
-    {ok, Data}=?debugTime("deserialize", msgpack:unpack(S, [jiffy])),
+    Data=[test_data() ++ [nil] || _ <- lists:seq(0, ?CNT)],
+    S=?debugTime("  serialize", msgpack:pack(Data, [{format, jiffy}])),
+    {ok, Data}=?debugTime("deserialize", msgpack:unpack(S, [{format, jiffy}])),
     ?debugFmt("for ~p KB test data(jiffy).", [byte_size(S) div 1024]).
 
 benchmark1_test()->
-    Data=[test_data() || _ <- lists:seq(0, ?CNT)],
-    S=?debugTime("  serialize", msgpack:pack(Data, [jsx])),
-    {ok, Data}=?debugTime("deserialize", msgpack:unpack(S, [jsx])),
+    Data=[test_data() ++ [null] || _ <- lists:seq(0, ?CNT)],
+    S=?debugTime("  serialize", msgpack:pack(Data, [{format, jsx}])),
+    {ok, Data}=?debugTime("deserialize", msgpack:unpack(S, [{format, jsx}])),
     ?debugFmt("for ~p KB test data(jsx).", [byte_size(S) div 1024]).
 
 %% benchmark2_test()->
@@ -61,14 +61,20 @@ benchmark1_test()->
 %%     ?debugFmt("for ~p KB test data(nif).", [byte_size(S) div 1024]).
 
 benchmark3_test()->
-    Data=[test_data() || _ <- lists:seq(0, ?CNT)],
+    Data=[test_data() ++ [nil] || _ <- lists:seq(0, ?CNT)],
     S=?debugTime("  serialize", term_to_binary(Data)),
     Data=?debugTime("deserialize", binary_to_term(S)),
     ?debugFmt("for ~p KB test data(t2b/b2t).", [byte_size(S) div 1024]).
 
 multirunner(What, Pack, Unpack) ->
     Self = self(),
-    Data=[test_data() || _ <- lists:seq(0, ?CNT)],
+    Nil = case What of
+              "jsx" -> null;
+              "jiffy" -> nil;
+              "t2b/b2t" -> nool
+          end,
+                   
+    Data=[test_data() ++ [Nil] || _ <- lists:seq(0, ?CNT)],
     Packed = Pack(Data),
     Size = byte_size(Packed) div 1024,
     [ spawn(fun() ->
@@ -106,10 +112,10 @@ benchmark_p0_test_() ->
      ?_assertEqual(ok,
                    multirunner("jiffy",
                                fun(Data) ->
-                                       msgpack:pack(Data, [jiffy])
+                                       msgpack:pack(Data, [{format, jiffy}])
                                end,
                                fun(Data) ->
-                                       msgpack:unpack(Data, [jiffy])
+                                       msgpack:unpack(Data, [{format, jiffy}])
                                end))}.
 
 benchmark_p1_test_() ->
@@ -117,10 +123,10 @@ benchmark_p1_test_() ->
      ?_assertEqual(ok,
                    multirunner("jsx",
                                fun(Data) ->
-                                       msgpack:pack(Data, [jsx])
+                                       msgpack:pack(Data, [{format, jsx}])
                                end,
                                fun(Data) ->
-                                       msgpack:unpack(Data, [jsx])
+                                       msgpack:unpack(Data, [{format, jsx}])
                                end))}.
 
 %% benchmark_p2_test_() ->

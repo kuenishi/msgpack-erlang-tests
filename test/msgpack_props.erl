@@ -24,23 +24,40 @@
 -import(msgpack_proper, [choose_type_jsx/0,
                          choose_type_jiffy/0]).
 
-prop_type() ->
-    numtests(128,
-        ?FORALL({Term, EnableStr}, {choose_type_jsx(), boolean()},
-                begin
-                    Opt = [jsx, {enable_str, EnableStr}],
-                    Binary = msgpack:pack(Term, Opt),
-                    {ok, Term1} = msgpack:unpack(Binary, Opt),
-                    Term =:= Term1
-                end)),
-    numtests(300,
-        ?FORALL({Term, EnableStr}, {choose_type_jiffy(), boolean()},
-                begin
-                    Opt = [jiffy, {enable_str, EnableStr}],
-                    Binary = msgpack:pack(Term, Opt),
-                    {ok, Term1} = msgpack:unpack(Binary, Opt),
-                    Term =:= Term1
-                end)).
+%% -ifndef(without_map).
+
+%% -import(msgpack_proper, [choose_type/0]).
+
+%% prop_type() ->
+%%     numtests(512,
+%%              ?FORALL({Term, EnableStr}, {choose_type(), boolean()},
+%%                      begin
+%%                          Opt = [jsx, {enable_str, EnableStr}],
+%%                          Binary = msgpack:pack(Term, Opt),
+%%                          {ok, Term1} = msgpack:unpack(Binary, Opt),
+%%                          Term =:= Term1
+%%                      end)).
+%% -endif.
+
+prop_jsx() ->
+    numtests(512,
+             ?FORALL({Term, EnableStr}, {choose_type_jsx(), boolean()},
+                     begin
+                         Opt = [{format, jsx}, {enable_str, EnableStr}],
+                         Binary = msgpack:pack(Term, Opt),
+                         {ok, Term1} = msgpack:unpack(Binary, Opt),
+                         Term =:= Term1
+                     end)).
+
+prop_jiffy() ->
+    numtests(512,
+             ?FORALL({Term, EnableStr}, {choose_type_jiffy(), boolean()},
+                     begin
+                         Opt = [{format, jiffy}, {enable_str, EnableStr}],
+                         Binary = msgpack:pack(Term, Opt),
+                         {ok, Term1} = msgpack:unpack(Binary, Opt),
+                         Term =:= Term1
+                     end)).
 
 
 choose_reserved() ->
