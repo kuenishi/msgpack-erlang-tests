@@ -18,14 +18,17 @@
 
 -module(msgpack_proper).
 
--export([choose_type/0, choose_type_jsx/0, choose_type_jiffy/0]).
+-ifndef(without_map).
+-export([choose_type/0]).
+-endif.
+
+-export([choose_type_jsx/0, choose_type_jiffy/0]).
 
 -export([array16_jsx/0, array32_jsx/0,
          map16_jsx/0, map32_jsx/0]).
 
 -export([array16_jiffy/0, array32_jiffy/0,
          map16_jiffy/0, map32_jiffy/0]).
-
 
 -include_lib("proper/include/proper.hrl").
 
@@ -58,7 +61,7 @@ fix_array() ->
          proper_gen:list_gen(Integer, choose_type())).
 
 array16() ->
-    proper_gen:list_gen(16, choose_type()).
+    proper_gen:list_gen(16, oneof(types())).
 
 -endif.
 
@@ -131,7 +134,7 @@ fix_array_jsx() ->
          proper_gen:list_gen(Integer, choose_type_jsx())).
 
 array16_jsx() ->
-    proper_gen:list_gen(16, choose_type_jsx()).
+    proper_gen:list_gen(16, oneof(types())).
 
 array32_jsx() ->
     [ N || N <- lists:seq(0, 16#010000)].
@@ -144,7 +147,7 @@ mapempty_jsx() ->
     [{}].
 
 map16_jsx() ->
-    proper_gen:list_gen(16, {choose_type_jsx(), choose_type_jsx()}).
+    proper_gen:list_gen(16, {oneof(types()), oneof(types())}).
 
 map32_jsx() ->
     [{N, N * N} || N <- lists:seq(0, 16#010000)].
@@ -156,7 +159,7 @@ fix_array_jiffy() ->
          proper_gen:list_gen(Integer, choose_type_jiffy())).
 
 array16_jiffy() ->
-    proper_gen:list_gen(16, choose_type_jiffy()).
+    proper_gen:list_gen(16, oneof(types())).
 
 array32_jiffy() ->
     [ N || N <- lists:seq(0, 16#010000)].
@@ -166,7 +169,7 @@ fix_map_jiffy() ->
          {proper_gen:list_gen(Integer, {choose_type_jiffy(), choose_type_jiffy()})}).
 
 map16_jiffy() ->
-    {proper_gen:list_gen(16, {choose_type_jiffy(), choose_type_jiffy()})}.
+    {proper_gen:list_gen(16, {oneof(types()), oneof(types())})}.
 
 map32_jiffy() ->
     {[{N, N * N} || N <- lists:seq(0, 16#010000)]}.

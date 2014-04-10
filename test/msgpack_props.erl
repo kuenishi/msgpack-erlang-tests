@@ -24,11 +24,12 @@
 -import(msgpack_proper, [choose_type_jsx/0,
                          choose_type_jiffy/0]).
 
+-define(NUMTESTS, 16).
+
+
 -ifndef(without_map).
 
 -import(msgpack_proper, [choose_type/0]).
-
--define(NUMTESTS, 16).
 
 prop_type() ->
     numtests(?NUMTESTS,
