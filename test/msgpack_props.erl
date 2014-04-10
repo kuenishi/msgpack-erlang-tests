@@ -24,23 +24,25 @@
 -import(msgpack_proper, [choose_type_jsx/0,
                          choose_type_jiffy/0]).
 
-%% -ifndef(without_map).
+-ifndef(without_map).
 
-%% -import(msgpack_proper, [choose_type/0]).
+-import(msgpack_proper, [choose_type/0]).
 
-%% prop_type() ->
-%%     numtests(512,
-%%              ?FORALL({Term, EnableStr}, {choose_type(), boolean()},
-%%                      begin
-%%                          Opt = [jsx, {enable_str, EnableStr}],
-%%                          Binary = msgpack:pack(Term, Opt),
-%%                          {ok, Term1} = msgpack:unpack(Binary, Opt),
-%%                          Term =:= Term1
-%%                      end)).
-%% -endif.
+-define(NUMTESTS, 16).
+
+prop_type() ->
+    numtests(?NUMTESTS,
+             ?FORALL({Term, EnableStr}, {choose_type(), boolean()},
+                     begin
+                         Opt = [{format, map}, {enable_str, EnableStr}],
+                         Binary = msgpack:pack(Term, Opt),
+                         {ok, Term1} = msgpack:unpack(Binary, Opt),
+                         Term =:= Term1
+                     end)).
+-endif.
 
 prop_jsx() ->
-    numtests(512,
+    numtests(?NUMTESTS,
              ?FORALL({Term, EnableStr}, {choose_type_jsx(), boolean()},
                      begin
                          Opt = [{format, jsx}, {enable_str, EnableStr}],
@@ -50,7 +52,7 @@ prop_jsx() ->
                      end)).
 
 prop_jiffy() ->
-    numtests(512,
+    numtests(?NUMTESTS,
              ?FORALL({Term, EnableStr}, {choose_type_jiffy(), boolean()},
                      begin
                          Opt = [{format, jiffy}, {enable_str, EnableStr}],
@@ -72,7 +74,7 @@ choose_reserved() ->
            16#D8]).
 
 prop_reserved() ->
-    numtests(300,
+    numtests(?NUMTESTS,
         ?FORALL(Type, choose_reserved(),
                 begin
                     {error, {badarg, Type1}} = msgpack:unpack(Type),

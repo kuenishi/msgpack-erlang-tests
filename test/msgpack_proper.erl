@@ -29,31 +29,53 @@
 
 -include_lib("proper/include/proper.hrl").
 
+
+types() ->
+    [positive_fixnum(), negative_fixnum(),
+     int8(), int16(), int32(), int64(),
+     uint8(), uint16(), uint32(), uint64(),
+     float(),
+     boolean(),
+     fix_raw(), raw16(), raw32()].
+
+-ifndef(without_map).
+
 %% default behaviour
-choose_type() -> choose_type_jiffy().
+choose_type() ->
+    oneof( types() ++ [nil()] ++
+               [
+                fix_array(), array16() %, array32(),
+                %% TODO:
+                %%fix_map() %, map16(), map32()
+               ]).
+
+%% fix_map() ->
+%%     ?LET(Integer, choose(0, 15),
+%%          maps:from_list(proper_gen:list_gen(Integer, {choose_type(), choose_type()}))).
+
+fix_array() ->
+    ?LET(Integer, choose(0, 15),
+         proper_gen:list_gen(Integer, choose_type())).
+
+array16() ->
+    proper_gen:list_gen(16, choose_type()).
+
+-endif.
 
 choose_type_jsx() ->
-    oneof([positive_fixnum(), negative_fixnum(),
-           int8(), int16(), int32(), int64(),
-           uint8(), uint16(), uint32(), uint64(),
-           float(),
-           null(), boolean(),
-           fix_raw(), raw16(), raw32(),
-           fix_array_jsx(), %array16(), array32(),
-           fix_map_jsx() %, map16(), map32()
-          ]).
+    oneof(types() ++ [null()] ++
+              [
+               fix_array_jsx(), array16_jsx(), % array32(),
+               mapempty_jsx(), fix_map_jsx() %, map16(), map32()
+              ]).
 
 
 choose_type_jiffy() ->
-    oneof([positive_fixnum(), negative_fixnum(),
-           int8(), int16(), int32(), int64(),
-           uint8(), uint16(), uint32(), uint64(),
-           float(),
-           nil(), boolean(),
-           fix_raw(), raw16(), raw32(),
-           fix_array_jiffy(), %array16(), array32(),
-           fix_map_jiffy() %, map16(), map32()
-          ]).
+    oneof(types() ++ [nil()] ++
+              [
+               fix_array_jiffy(), array16_jiffy(), %array32(),
+               fix_map_jiffy() %, map16(), map32()
+              ]).
 
 positive_fixnum() ->
     choose(0, 127).
@@ -115,7 +137,7 @@ array32_jsx() ->
     [ N || N <- lists:seq(0, 16#010000)].
 
 fix_map_jsx() ->
-    ?LET(Integer, choose(0, 15),
+    ?LET(Integer, choose(1, 15),
          proper_gen:list_gen(Integer, {choose_type_jsx(), choose_type_jsx()})).
 
 mapempty_jsx() ->
@@ -142,9 +164,6 @@ array32_jiffy() ->
 fix_map_jiffy() ->
     ?LET(Integer, choose(0, 15),
          {proper_gen:list_gen(Integer, {choose_type_jiffy(), choose_type_jiffy()})}).
-
-mapempty_jiffy() ->
-    {[]}.
 
 map16_jiffy() ->
     {proper_gen:list_gen(16, {choose_type_jiffy(), choose_type_jiffy()})}.
